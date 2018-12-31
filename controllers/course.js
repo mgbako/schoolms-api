@@ -1,13 +1,16 @@
 const Joi = require('joi');
-const courses = [
-  {id: 1, name: 'Maths', author: 'john'}, 
-  {id: 2, name: 'Economics', author: 'mgbako'}
-];
+const Course = require('../models/course');
 
 exports.index = (req, res, next) => {
-  res.status(200).json({
-    courses: courses
-  });
+  Course.getCourse()
+    .then(courses => {
+      res.status(200).json({
+        courses: courses
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    })
 }
 
 exports.create = (req, res, next) => {
@@ -19,15 +22,19 @@ exports.create = (req, res, next) => {
   }
 
   const course = {
-    id: courses.length + 1,
     ...req.body
   };
 
-  courses.push(course);
-  res.status(201).json({
-    message: 'Course Created',
-    course: course
-  });
+  Course.createCourse(course)
+    .then(course => {
+      return res.status(201).json({
+        message: 'Course Created',
+        course: course
+      });
+    })
+    .catch(error => {
+      console.log(error);
+    });
 }
 
 exports.show = (req, res, next) => {
@@ -80,7 +87,7 @@ exports.delete = (req, res, next) => {
 function validateCourse(course){
   const schema = {
     name: Joi.string().min(3).required(),
-    author: Joi.string().min(3).required()
+    user: Joi.string().min(3).required()
   };
 
   return Joi.validate(course, schema); 

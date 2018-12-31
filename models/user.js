@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-mongoose.connect('mongodb://localhost/mongo-exercises', { useNewUrlParser: true })
-  .then(() => console.log('MongoDB connected...'))
-  .catch((err) => console.log('MongoDB not connected', err));
+const _ = require('lodash');
+const bcrypt = require('bcrypt');
 
 const userSchema = new Schema({
-  email: { type: String, required: true },
-  name: { type: String, required: true }
+  email: { type: String, trim: true, required: true, unique: true },
+  name: { type: String, trim: true, required: true },
+  password: { type: String, trim: true, required: true }
 }, { timestamps: true });
 
 User = mongoose.model('User', userSchema);
@@ -21,9 +20,14 @@ exports.getUsers = async () => {
 }
 
 exports.createUser = async (userData) => {
-  const user = new User(userData);
-
+  // console.log('userData', userData)
+  
+  const user = new User(_.pick(userData, ['name', 'email', 'password']));
+  
   try {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+
     return await user.save();
   } catch (error) {
     console.error(error.message);
@@ -53,3 +57,16 @@ exports.deleteUser = async (id) => {
     console.error(error.message);
   }
 }
+
+exports.checkUserExist = async (email) => {
+  try {
+    let user = await User.findOne({ email: email});
+    if(!user) return false;
+
+    return user;
+    
+  } catch (error) {
+    console.log(error)
+  }
+}
+

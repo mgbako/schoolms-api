@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/schoolms')
+mongoose.connect('mongodb://localhost/schoolms', { useNewUrlParser: true })
 .then(() => console.log('Connected to MongoDB...'))
 .catch(err => console.error('Could not connect to MongoDB...'));
 
@@ -16,7 +16,14 @@ const courseRoutes = require('./routes/course');
 const userRoutes = require('./routes/user')
 
 const app = express();
+
+if(!process.env.jwtprivatekey){
+  console.error('FATAL ERROR: jwtprivatekey is not defined');
+  process.exit(1);
+}
+
 const port = process.env.PORT || 3000;
+
 
 app.use(helmet());
 app.use(cors());
